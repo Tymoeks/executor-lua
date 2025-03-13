@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executor Lua</title>
+    <style>
+        /* Base styles and blue theme */
+        :root {
+            --primary-blue: #1e88e5;
+            --dark-blue: #0d47a1;
+            --light-blue: #64b5f6;
+            --very-light-blue: #bbdefb;
+            --dark-bg: #1e1e2e;
+            --medium-bg: #2d2d3a;
+            --light-bg: #3d3d4a;
+            --text-light: #f5f5f5;
+            --text-dark: #333;
+            --keyword-red: #ff5252;
+            --editor-font: 'Courier New', monospace;
+            --editor-font-size: 16px;
+            --editor-line-height: 1.5;
+            --default-text: #d4d4d4; /* Light gray for default text */
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        
+        /* Header styles */
+        header {
+            background-color: var(--medium-bg);
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+        }
+        
+        .title {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        
+        .title:hover {
+            color: var(--light-blue);
+        }
+        
+        /* Main container */
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            gap: 1rem;
+        }
+        
+        /* Code editor section */
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 300px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: box-shadow 0.3s ease;
+            background-color: var(--dark-bg);
+        }
+        
+        .editor-container:hover {
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+        }
+        
+        .editor-wrapper {
+            display: flex;
+            flex: 1;
+            position: relative;
+        }
+        
+        .line-numbers {
+            background-color: var(--medium-bg);
+            padding: 10px 8px;
+            text-align: right;
+            color: var(--light-blue);
+            user-select: none;
+            opacity: 0.7;
+            border-right: 1px solid var(--light-bg);
+            overflow: hidden;
+            font-family: var(--editor-font);
+            font-size: var(--editor-font-size);
+            line-height: var(--editor-line-height);
+            min-width: 45px;
+        }
+        
+        .code-editor {
+            flex: 1;
+            background-color: var(--dark-bg);
+            color: transparent; /* Make text transparent */
+            caret-color: var(--default-text); /* Keep cursor visible */
+            padding: 10px;
+            border: none;
+            outline: none;
+            resize: none;
+            font-family: var(--editor-font);
+            font-size: var(--editor-font-size);
+            line-height: var(--editor-line-height);
+            tab-size: 4;
+            overflow: auto;
+            white-space: pre;
+        }
+        
+        /* Make selection visible but semi-transparent */
+        .code-editor::selection {
+            background-color: rgba(100, 181, 246, 0.4);
+            color: transparent;
+        }
+        
+        #highlight-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            margin-left: 45px; /* Match line numbers width */
+            padding: 10px;
+            font-family: var(--editor-font);
+            font-size: var(--editor-font-size);
+            line-height: var(--editor-line-height);
+            white-space: pre;
+            overflow: hidden;
+            letter-spacing: normal;
+            color: var(--default-text); /* Default text color */
+        }
+        
+        /* Make sure all syntax highlighting elements inherit font properties */
+        #highlight-layer span {
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            letter-spacing: inherit;
+            font-weight: inherit;
+            white-space: pre;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--light-bg);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: var(--light-blue);
+        }
+        
+        /* Button section */
+        .button-section {
+            display: flex;
+            gap: 1rem;
+            padding: 0.5rem 0;
+        }
+        
+        .btn {
+            padding: 0.6rem 1.4rem;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 1.05rem; /* Slightly larger font */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-run {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+        
+        .btn-run:hover {
+            background-color: var(--dark-blue);
+            transform: translateY(-2px);
+        }
+        
+        .btn-clear {
+            background-color: var(--medium-bg);
+            color: var(--text-light);
+            border: 1px solid var(--light-bg);
+        }
+        
+        .btn-clear:hover {
+            background-color: var(--light-bg);
+            transform: translateY(-2px);
+        }
+        
+        /* Output controls */
+        .output-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .output-title {
+            font-size: 1.1rem;
+            color: var(--light-blue);
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .filter-toggle {
+            background-color: var(--medium-bg);
+            border: 1px solid var(--light-bg);
+            color: var(--text-light);
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem; /* Added font size increase */
+        }
+        
+        .filter-toggle.active {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+        
+        /* Output section */
+        .output-section {
+            background-color: var(--medium-bg);
+            border-radius: 8px;
+            padding: 1rem;
+            flex: 1;
+            min-height: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .output-section:hover {
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Output message styling */
+        .output-message {
+            margin-bottom: 0.8rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            animation: fadeIn 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.3rem;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .message-timestamp {
+            color: var(--light-blue);
+        }
+        
+        .message-type {
+            font-weight: bold;
+        }
+        
+        .message-type.print {
+            color: var(--light-blue);
+        }
+        
+        .message-type.błąd {
+            color: var(--keyword-red);
+        }
+        
+        .message-content {
+            background-color: var(--dark-bg);
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-family: var(--editor-font);
+            word-break: break-word;
+        }
+        
+        /* Syntax highlighting */
+        .keyword {
+            color: var(--keyword-red);
+        }
+        
+        .string {
+            color: #9ccc65;
+        }
+        
+        .number {
+            color: #ffb74d;
+        }
+        
+        .comment {
+            color: #78909c;
+            font-style: italic;
+        }
+        
+        .function {
+            color: #4fc3f7;
+        }
+        
+        .plain {
+            color: var(--default-text);
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        .pulse {
+            animation: pulse 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 class="title">Executor Lua</h1>
+    </header>
+    
+    <div class="container">
+        <div class="editor-container">
+            <div class="editor-wrapper">
+                <div class="line-numbers" id="line-numbers">1</div>
+                <textarea id="code-editor" class="code-editor" spellcheck="false">-- Pisz swój kod tutaj.
+print("Hello, Lua!")
+local function factorial(n)
+    if n <= 1 then
+        return 1
+    else
+        return n * factorial(n - 1)
+    end
+end
+
+print("Factorial of 5 is: " .. factorial(5))</textarea>
+                <div id="highlight-layer"></div>
+            </div>
+        </div>
+        
+        <div class="button-section">
+            <button id="run-btn" class="btn btn-run">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M11.596 8.697l-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
+                </svg>
+                Uruchom Kod
+            </button>
+            <button id="clear-btn" class="btn btn-clear">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5ZM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528ZM8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5Z"/>
+                </svg>
+                Wyczyść Dane Wyjściowe
+            </button>
+        </div>
+        
+        <div class="output-controls">
+            <div class="output-title">Wyjście</div>
+            <div class="filter-controls">
+                <button class="filter-toggle active" data-filter="all">Wszystko</button>
+                <button class="filter-toggle" data-filter="print">Print'y</button>
+                <button class="filter-toggle" data-filter="błąd">Błędy</button>
+            </div>
+        </div>
+        
+        <div class="output-section" id="output">
+            <!-- Output messages will appear here -->
+        </div>
+    </div>
+    
+    <!-- Embedding Fengari Lua VM (minimized) -->
+    <script src="https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js"></script>
+    
+    <script>
+        // DOM elements
+        const codeEditor = document.getElementById("code-editor");
+        const highlightLayer = document.getElementById("highlight-layer");
+        const lineNumbers = document.getElementById("line-numbers");
+        const runBtn = document.getElementById("run-btn");
+        const clearBtn = document.getElementById("clear-btn");
+        const outputElement = document.getElementById("output");
+        const filterButtons = document.querySelectorAll(".filter-toggle");
+        
+        // Current filter
+        let currentFilter = "all";
+        
+        // Line numbers functionality
+        function updateLineNumbers() {
+            const lines = codeEditor.value.split("\n");
+            lineNumbers.innerHTML = Array.from({length: lines.length}, (_, i) => i + 1).join("<br>");
+        }
+        
+        // Syntax highlighting
+        function highlightSyntax() {
+    let code = codeEditor.value;
+    
+    // Escape HTML entities first
+    code = code.replace(/&/g, "&amp;")
+               .replace(/</g, "&lt;")
+               .replace(/>/g, "&gt;");
+    
+    // Define Lua keywords for highlighting
+    const keywords = [
+        "and", "break", "do", "else", "elseif", 
+        "end", "for", "function", "if", 
+        "in", "local", "not", "or", 
+        "repeat", "return", "then", "until", "while"
+    ];
+
+    // Store parts that should not be processed by other rules
+    let parts = [];
+    let processedCode = code;
+    
+    // Comments (store and replace with placeholder)
+    processedCode = processedCode.replace(/(--.*?)($|\n)/g, function(match) {
+        const placeholder = `###COMMENT${parts.length}###`;
+        parts.push('<span class="comment">' + match + '</span>');
+        return placeholder;
+    });
+    
+    // Strings (store and replace with placeholder)
+    processedCode = processedCode.replace(/(".*?"|'.*?')/g, function(match) {
+        const placeholder = `###STRING${parts.length}###`;
+        parts.push('<span class="string">' + match + '</span>');
+        return placeholder;
+    });
+    
+    // Numbers
+    processedCode = processedCode.replace(/\b(\d+\.?\d*)\b/g, function(match) {
+        const placeholder = `###NUMBER${parts.length}###`;
+        parts.push('<span class="number">' + match + '</span>');
+        return placeholder;
+    });
+    
+    // Keywords (ensuring they are whole words)
+    for (const keyword of keywords) {
+        const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
+        processedCode = processedCode.replace(regex, function(match) {
+            const placeholder = `###KEYWORD${parts.length}###`;
+            parts.push('<span class="keyword">' + match + '</span>');
+            return placeholder;
+        });
+    }
+    
+    // print function (keeping this separate to maintain your original styling)
+    processedCode = processedCode.replace(/\b(print)\b/g, function(match) {
+        const placeholder = `###FUNCTION${parts.length}###`;
+        parts.push('<span class="function">' + match + '</span>');
+        return placeholder;
+    });
+    
+    // Other function calls
+    processedCode = processedCode.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, function(match, p1) {
+        const placeholder = `###FUNCTION${parts.length}###`;
+        parts.push('<span class="function">' + p1 + '</span>(');
+        return placeholder;
+    });
+    
+    // Rest of your function remains the same...
+    // Now wrap any remaining text in plain spans
+    // Split by placeholders
+    let finalResult = '';
+    let lastIndex = 0;
+    
+    // Regular expression to match all placeholders
+    const placeholderRegex = /###(COMMENT|STRING|NUMBER|KEYWORD|FUNCTION|ORANGE)(\d+)###/g;
+    let match;
+    
+    while ((match = placeholderRegex.exec(processedCode)) !== null) {
+        // Add plain text before the placeholder
+        if (match.index > lastIndex) {
+            const plainText = processedCode.substring(lastIndex, match.index);
+            finalResult += '<span class="plain">' + plainText + '</span>';
+        }
+        
+        // Add the preserved part for this placeholder
+        const partIndex = parseInt(match[2]);
+        finalResult += parts[partIndex];
+        
+        lastIndex = match.index + match[0].length;
+    }
+    
+    // Add any remaining text
+    if (lastIndex < processedCode.length) {
+        const plainText = processedCode.substring(lastIndex);
+        finalResult += '<span class="plain">' + plainText + '</span>';
+    }
+    
+    // Update the highlight layer
+    highlightLayer.innerHTML = finalResult;
+    
+    // Sync scroll position with the editor
+    highlightLayer.scrollTop = codeEditor.scrollTop;
+    highlightLayer.scrollLeft = codeEditor.scrollLeft;
+}
+        
+        // Initialize editor
+        function initializeEditor() {
+            updateLineNumbers();
+            highlightSyntax();
+            
+            // Event listeners
+            codeEditor.addEventListener("input", function() {
+                updateLineNumbers();
+                highlightSyntax();
+            });
+            
+            codeEditor.addEventListener("scroll", function() {
+                highlightLayer.scrollTop = codeEditor.scrollTop;
+                highlightLayer.scrollLeft = codeEditor.scrollLeft;
+            });
+            
+            codeEditor.addEventListener("keydown", function(e) {
+                if (e.key === "Tab") {
+                    e.preventDefault();
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    
+                    // Insert 4 spaces at cursor position
+                    this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
+                    
+                    // Move cursor position
+                    this.selectionStart = this.selectionEnd = start + 4;
+                    
+                    // Update highlighting
+                    updateLineNumbers();
+                    highlightSyntax();
+                }
+            });
+        }
+        
+        // Run Lua code
+        function runLuaCode() {
+            const code = codeEditor.value;
+    
+    // Create a timestamp
+    const timestamp = new Date().toLocaleTimeString();
+    
+    try {
+        // Create a new Lua state
+        const L = fengari.lauxlib.luaL_newstate();
+        
+        // Load Lua standard libraries
+        fengari.lualib.luaL_openlibs(L);
+        
+        // Custom print function to capture output
+        const printFunction = function(L) {
+            const nargs = fengari.lua.lua_gettop(L);
+            let message = '';
+            
+            for (let i = 1; i <= nargs; i++) {
+                message += fengari.lua.lua_tojsstring(L, i);
+                if (i < nargs) message += '\t';
+            }
+            
+            // Add the captured output to our display
+            addOutputMessage("print", message, timestamp);
+            
+            return 0;
+        };
+        
+        // Override the print function
+        fengari.lua.lua_pushcfunction(L, printFunction);
+        fengari.lua.lua_setglobal(L, 'print');
+        
+        // Run the code
+        const status = fengari.lauxlib.luaL_dostring(L, fengari.to_luastring(code));
+        
+        // Handle errors
+        if (status !== fengari.lua.LUA_OK) {
+            const errorMsg = fengari.lua.lua_tojsstring(L, -1);
+            addOutputMessage("błąd", errorMsg, timestamp);
+        } else {
+            // Add success message
+            addOutputMessage("info", "Kod wykonany pomyślnie.", timestamp);
+        }
+        
+    } catch (error) {
+        // Handle errors
+        addOutputMessage("błąd", error.message, timestamp);
+    }
+    
+    // Apply animation to the run button
+    runBtn.classList.add("pulse");
+    setTimeout(() => runBtn.classList.remove("pulse"), 500);
+    
+    // Filter messages based on current filter
+    applyFilter();
+        }
+        
+        // Add message to output
+        function addOutputMessage(type, content, timestamp) {
+            const messageElement = document.createElement("div");
+            messageElement.className = `output-message ${type}`;
+            messageElement.dataset.type = type;
+            
+            const header = document.createElement("div");
+            header.className = "message-header";
+            
+            const typeSpan = document.createElement("span");
+            typeSpan.className = `message-type ${type}`;
+            typeSpan.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            
+            const timestampSpan = document.createElement("span");
+            timestampSpan.className = "message-timestamp";
+            timestampSpan.textContent = timestamp;
+            
+            header.appendChild(typeSpan);
+            header.appendChild(timestampSpan);
+            
+            const messageContent = document.createElement("div");
+            messageContent.className = "message-content";
+            messageContent.textContent = content;
+            
+            messageElement.appendChild(header);
+            messageElement.appendChild(messageContent);
+            
+            outputElement.appendChild(messageElement);
+            
+            // Scroll to the bottom of output
+            outputElement.scrollTop = outputElement.scrollHeight;
+        }
+        
+        // Clear output
+        function clearOutput() {
+            outputElement.innerHTML = "";
+        }
+        
+        // Filter output messages
+        function applyFilter() {
+            const messages = outputElement.querySelectorAll(".output-message");
+            
+            messages.forEach(message => {
+                if (currentFilter === "all" || message.dataset.type === currentFilter) {
+                    message.style.display = "flex";
+                } else {
+                    message.style.display = "none";
+                }
+            });
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Run button
+            runBtn.addEventListener("click", runLuaCode);
+            
+            // Clear button
+            clearBtn.addEventListener("click", clearOutput);
+            
+            // Filter buttons
+            filterButtons.forEach(button => {
+                button.addEventListener("click", function() {
+                    // Update active filter
+                    filterButtons.forEach(btn => btn.classList.remove("active"));
+                    this.classList.add("active");
+                    
+                    // Set filter and apply
+                    currentFilter = this.dataset.filter;
+                    applyFilter();
+                });
+            });
+            
+            // Run code on Ctrl+Enter
+            codeEditor.addEventListener("keydown", function(e) {
+                if (e.ctrlKey && e.key === "Enter") {
+                    runLuaCode();
+                }
+            });
+        }
+        
+        // Initialize everything
+        window.addEventListener("load", function() {
+            initializeEditor();
+            setupEventListeners();
+            highlightSyntax(); // Initial highlighting
+        });
+    </script>
+</body>
+</html>
