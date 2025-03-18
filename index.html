@@ -408,9 +408,10 @@
             background-color: var(--dark-bg);
         }
         
-        .keyword-type    { color: var(--keyword-red); }
-        .function-type   { color: var(--bfunction); }
-        .library-type    { color: var(--library); }
+        .wyrażenie-type    { color: var(--keyword-red); }
+        .wartość-type   { color: var(--keyword-orange); }
+        .funkcja-type   { color: var(--bfunction); }
+        .biblioteka-type    { color: var(--library); }
         .math-type       { color: var(--dotf); }
         .string-type     { color: var(--dotf); }
         .table-type      { color: var(--dotf); }
@@ -520,61 +521,63 @@ print(math.random(1, 5))</textarea>
         // Define autocomplete suggestions
         const autocompleteItems = [
             // Lua keywords
-            { text: "and", type: "keyword" },
-            { text: "break", type: "keyword" },
-            { text: "do", type: "keyword" },
-            { text: "else", type: "keyword" },
-            { text: "elseif", type: "keyword" },
-            { text: "end", type: "keyword" },
-            { text: "for", type: "keyword" },
-            { text: "function", type: "keyword" },
-            { text: "if", type: "keyword" },
-            { text: "in", type: "keyword" },
-            { text: "local", type: "keyword" },
-            { text: "not", type: "keyword" },
-            { text: "or", type: "keyword" },
-            { text: "repeat", type: "keyword" },
-            { text: "return", type: "keyword" },
-            { text: "then", type: "keyword" },
-            { text: "until", type: "keyword" },
-            { text: "while", type: "keyword" },
-            { text: "true", type: "keyword" },
-            { text: "false", type: "keyword" },
-            { text: "nil", type: "keyword" },
-            { text: "goto", type: "keyword" },
+            { text: "and", type: "wyrażenie" },
+            { text: "break", type: "wyrażenie" },
+            { text: "do", type: "wyrażenie" },
+            { text: "else", type: "wyrażenie" },
+            { text: "elseif", type: "wyrażenie" },
+            { text: "end", type: "wyrażenie" },
+            { text: "for", type: "wyrażenie" },
+            { text: "function", type: "wyrażenie" },
+            { text: "if", type: "wyrażenie" },
+            { text: "in", type: "wyrażenie" },
+            { text: "local", type: "wyrażenie" },
+            { text: "not", type: "wyrażenie" },
+            { text: "or", type: "wyrażenie" },
+            { text: "repeat", type: "wyrażenie" },
+            { text: "return", type: "wyrażenie" },
+            { text: "then", type: "wyrażenie" },
+            { text: "until", type: "wyrażenie" },
+            { text: "while", type: "wyrażenie" },
+            { text: "goto", type: "wyrażenie" },
+
+            // Values
+            { text: "true", type: "wartość" },
+            { text: "false", type: "wartość" },
+            { text: "nil", type: "wartość" },
 
             // Basic functions
-            { text: "print", type: "function" },
-            { text: "tonumber", type: "function" },
-            { text: "tostring", type: "function" },
-            { text: "type", type: "function" },
-            { text: "pairs", type: "function" },
-            { text: "ipairs", type: "function" },
-            { text: "pcall", type: "function" },
-            { text: "error", type: "function" },
-            { text: "assert", type: "function" },
-            { text: "collectgarbage", type: "function" },
-            { text: "dofile", type: "function" },
-            { text: "getmetatable", type: "function" },
-            { text: "load", type: "function" },
-            { text: "loadfile", type: "function" },
-            { text: "next", type: "function" },
-            { text: "rawequal", type: "function" },
-            { text: "rawget", type: "function" },
-            { text: "rawset", type: "function" },
-            { text: "select", type: "function" },
-            { text: "setmetatable", type: "function" },
-            { text: "xpcall", type: "function" },
+            { text: "print", type: "funkcja" },
+            { text: "tonumber", type: "funkcja" },
+            { text: "tostring", type: "funkcja" },
+            { text: "type", type: "funkcja" },
+            { text: "pairs", type: "funkcja" },
+            { text: "ipairs", type: "funkcja" },
+            { text: "pcall", type: "funkcja" },
+            { text: "error", type: "funkcja" },
+            { text: "assert", type: "funkcja" },
+            { text: "collectgarbage", type: "funkcja" },
+            { text: "dofile", type: "funkcja" },
+            { text: "getmetatable", type: "funkcja" },
+            { text: "load", type: "funkcja" },
+            { text: "loadfile", type: "funkcja" },
+            { text: "next", type: "funkcja" },
+            { text: "rawequal", type: "funkcja" },
+            { text: "rawget", type: "funkcja" },
+            { text: "rawset", type: "funkcja" },
+            { text: "select", type: "funkcja" },
+            { text: "setmetatable", type: "funkcja" },
+            { text: "xpcall", type: "funkcja" },
 
             // Libraries
-            { text: "math", type: "library" },
-            { text: "string", type: "library" },
-            { text: "table", type: "library" },
-            { text: "io", type: "library" },
-            { text: "os", type: "library" },
-            { text: "package", type: "library" },
-            { text: "coroutine", type: "library" },
-            { text: "debug", type: "library" },
+            { text: "math", type: "biblioteka" },
+            { text: "string", type: "biblioteka" },
+            { text: "table", type: "biblioteka" },
+            { text: "io", type: "biblioteka" },
+            { text: "os", type: "biblioteka" },
+            { text: "package", type: "biblioteka" },
+            { text: "coroutine", type: "biblioteka" },
+            { text: "debug", type: "biblioteka" },
 
             // Math functions
             { text: "math.abs", type: "math" },
