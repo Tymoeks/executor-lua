@@ -771,31 +771,67 @@ print(math.random(1, 5))</textarea>
                 "true", "false", "nil"
             ];
 
-            const Functions = [
-                "assert", "collectgarbage", "dofile", "error", "getmetatable", "ipairs", "load", "loadfile", 
-                "next", "pairs", "pcall", "print", "rawequal", "rawget", "rawset", "select", "setmetatable", 
-                "tonumber", "tostring", "type", "unpack" // basic functions
-            ];
+// Basic functions (core Lua functions)
+const Functions = [
+    "assert", "collectgarbage", "dofile", "error", "getmetatable", "ipairs",
+    "load", "loadfile", "next", "pairs", "pcall", "print", "rawequal",
+    "rawget", "rawset", "select", "setmetatable", "tonumber", "tostring",
+    "type", "unpack", "xpcall" // added xpcall
+];
 
-            const Librariess = [
-                "math", "table", "string"
-            ];
+// Standard libraries available in Lua
+const Libraries = [
+    "math", "table", "string", "io", "os", "package", "coroutine", "debug"
+];
 
-            const dotmath = [
-                "random", "randomseed", "sqrt", "sin", "ceil", "floor", 
-                "abs", "acos", "asin", "atan", "atan2", "cos", "cosh", "deg", "exp", "fmod", 
-                "huge", "ldexp", "log", "log10", "max", "min", "modf", "pi", "pow", "rad", "sinh", "tanh"
-            ];
+// Functions from the math library
+const dotmath = [
+    "random", "randomseed", "sqrt", "sin", "ceil", "floor",
+    "abs", "acos", "asin", "atan", "atan2", "cos", "cosh", "deg",
+    "exp", "fmod", "huge", "ldexp", "log", "log10", "max", "min",
+    "modf", "pi", "pow", "rad", "sinh", "tanh"
+];
 
-            const dottable = [
-                "insert", "remove", "sort", "concat", "move", "getn", "foreach", "foreachi"
-            ];
-            
-            const dotstring = [
-                "byte", "char", "dump", "find", "format", "gmatch", 
-                "gsub", "len", "lower", "match", "rep", "reverse", 
-                "sub", "upper"
-            ];
+// Functions from the table library
+const dottable = [
+    "insert", "remove", "sort", "concat", "move", "getn", "foreach", "foreachi"
+];
+
+// Functions from the string library
+const dotstring = [
+    "byte", "char", "dump", "find", "format", "gmatch",
+    "gsub", "len", "lower", "match", "rep", "reverse",
+    "sub", "upper"
+];
+
+// Functions from the io library
+const dotio = [
+    "close", "flush", "input", "lines", "open", "output",
+    "popen", "read", "tmpfile", "type", "write"
+];
+
+// Functions from the os library
+const dotos = [
+    "clock", "date", "difftime", "execute", "exit", "getenv",
+    "remove", "rename", "setlocale", "time"
+];
+
+// Functions from the package library
+const dotpackage = [
+    "loadlib", "searchpath", "preload", "loaded", "config",
+    "path", "cpath", "require", "module"
+];
+
+// Functions from the coroutine library
+const dotcoroutine = [
+    "create", "resume", "running", "status", "wrap", "yield"
+];
+
+// Functions from the debug library
+const dotdebug = [
+    "debug", "gethook", "sethook", "getinfo", "getlocal",
+    "setlocal", "getmetatable", "getregistry", "getupvalue", "setupvalue"
+];
 
             // Store parts that should not be processed by other rules
             let parts = [];
@@ -833,36 +869,93 @@ print(math.random(1, 5))</textarea>
                 });
             }
 
-            // table .dot
-            for (const keyword of dotmath) {
-                // Match 'table.' followed by the keyword
-                const regex = new RegExp(`\\b(math\\.)(${keyword})\\b`, 'g');
-                processedCode = processedCode.replace(regex, function(match, p1, p2) {
-                    const placeholder = `###BDOTFUNCTION${parts.length}###`;
-                    parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
-                    return p1 + placeholder;  // Keep 'table.' and apply the highlight only to the keyword
-                });
-            }
-            // table .dot
-            for (const keyword of dottable) {
-                // Match 'table.' followed by the keyword
-                const regex = new RegExp(`\\b(table\\.)(${keyword})\\b`, 'g');
-                processedCode = processedCode.replace(regex, function(match, p1, p2) {
-                    const placeholder = `###BDOTFUNCTION${parts.length}###`;
-                    parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
-                    return p1 + placeholder;  // Keep 'table.' and apply the highlight only to the keyword
-                });
-            }
-            // string .dot
-            for (const keyword of dotstring) {
-                // Match 'table.' followed by the keyword
-                const regex = new RegExp(`\\b(string\\.)(${keyword})\\b`, 'g');
-                processedCode = processedCode.replace(regex, function(match, p1, p2) {
-                    const placeholder = `###BDOTFUNCTION${parts.length}###`;
-                    parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
-                    return p1 + placeholder;  // Keep 'table.' and apply the highlight only to the keyword
-                });
-            }
+// Process math dot functions
+for (const keyword of dotmath) {
+    // Match 'math.' followed by the keyword
+    const regex = new RegExp(`\\b(math\\.)(${keyword})\\b`, 'g');
+    processedCode = processedCode.replace(regex, function(match, p1, p2) {
+        const placeholder = `###BDOTFUNCTION${parts.length}###`;
+        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
+        return p1 + placeholder;
+    });
+}
+
+// Process table dot functions
+for (const keyword of dottable) {
+    // Match 'table.' followed by the keyword
+    const regex = new RegExp(`\\b(table\\.)(${keyword})\\b`, 'g');
+    processedCode = processedCode.replace(regex, function(match, p1, p2) {
+        const placeholder = `###BDOTFUNCTION${parts.length}###`;
+        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
+        return p1 + placeholder;
+    });
+}
+
+// Process string dot functions
+for (const keyword of dotstring) {
+    // Match 'string.' followed by the keyword
+    const regex = new RegExp(`\\b(string\\.)(${keyword})\\b`, 'g');
+    processedCode = processedCode.replace(regex, function(match, p1, p2) {
+        const placeholder = `###BDOTFUNCTION${parts.length}###`;
+        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
+        return p1 + placeholder;
+    });
+}
+
+// Process io dot functions
+for (const keyword of dotio) {
+    // Match 'io.' followed by the keyword
+    const regex = new RegExp(`\\b(io\\.)(${keyword})\\b`, 'g');
+    processedCode = processedCode.replace(regex, function(match, p1, p2) {
+        const placeholder = `###BDOTFUNCTION${parts.length}###`;
+        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
+        return p1 + placeholder;
+    });
+}
+
+// Process os dot functions
+for (const keyword of dotos) {
+    // Match 'os.' followed by the keyword
+    const regex = new RegExp(`\\b(os\\.)(${keyword})\\b`, 'g');
+    processedCode = processedCode.replace(regex, function(match, p1, p2) {
+        const placeholder = `###BDOTFUNCTION${parts.length}###`;
+        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
+        return p1 + placeholder;
+    });
+}
+
+// Process package dot functions
+for (const keyword of dotpackage) {
+    // Match 'package.' followed by the keyword
+    const regex = new RegExp(`\\b(package\\.)(${keyword})\\b`, 'g');
+    processedCode = processedCode.replace(regex, function(match, p1, p2) {
+        const placeholder = `###BDOTFUNCTION${parts.length}###`;
+        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
+        return p1 + placeholder;
+    });
+}
+
+// Process coroutine dot functions
+for (const keyword of dotcoroutine) {
+    // Match 'coroutine.' followed by the keyword
+    const regex = new RegExp(`\\b(coroutine\\.)(${keyword})\\b`, 'g');
+    processedCode = processedCode.replace(regex, function(match, p1, p2) {
+        const placeholder = `###BDOTFUNCTION${parts.length}###`;
+        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
+        return p1 + placeholder;
+    });
+}
+
+// Process debug dot functions
+for (const keyword of dotdebug) {
+    // Match 'debug.' followed by the keyword
+    const regex = new RegExp(`\\b(debug\\.)(${keyword})\\b`, 'g');
+    processedCode = processedCode.replace(regex, function(match, p1, p2) {
+        const placeholder = `###BDOTFUNCTION${parts.length}###`;
+        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
+        return p1 + placeholder;
+    });
+}
 
             // Built-in functions with dot (only if preceded by a dot)
             for (const keyword of Functions) {
