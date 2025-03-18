@@ -709,57 +709,68 @@ print(math.random(1, 5))</textarea>
             autocompleteBox.style.top = (editorRect.bottom - 205) + 'px';
         }
         
-        // Autocomplete functionality
-        function showAutocomplete() {
-            const cursorPos = codeEditor.selectionStart;
-            const text = codeEditor.value.substring(0, cursorPos);
-            
-            // Find the partial word before cursor
-            const wordRegex = /[\w\.]*$/;
-            const match = text.match(wordRegex);
-            
-            if (match && match[0]) {
-                const partialWord = match[0].toLowerCase();
-                
-                // Tylko pokaż sugestie jeśli wpisano przynajmniej 2 znaki
-                if (partialWord.length < 2) {
-                    hideAutocomplete();
-                    return;
-                }
-                
-                // Get matching suggestions
-                currentSuggestions = autocompleteItems.filter(item => 
-                    item.text.toLowerCase().startsWith(partialWord) && 
-                    item.text.toLowerCase() !== partialWord
-                );
-                
-                if (currentSuggestions.length > 0) {               
-                    // Populate suggestions
-                    autocompleteBox.innerHTML = '';
-                    currentSuggestions.forEach((suggestion, index) => {
-                        const item = document.createElement('div');
-                        item.className = 'autocomplete-item';
-                        item.innerHTML = `
-                            <span class="autocomplete-text">${suggestion.text}</span>
-                            <span class="autocomplete-type ${suggestion.type}-type">${suggestion.type}</span>
-                        `;
-                        item.dataset.index = index;
-                        item.addEventListener('click', () => {
-                            insertSuggestion(suggestion.text);
-                        });
-                        autocompleteBox.appendChild(item);
-                    });
-                    
-                    autocompleteBox.style.display = 'block';
-                    autocompleteVisible = true;
-                    selectedAutocompleteIndex = -1;
-                } else {
-                    hideAutocomplete();
-                }
-            } else {
-                hideAutocomplete();
-            }
+// Autocomplete functionality
+function showAutocomplete() {
+    const cursorPos = codeEditor.selectionStart;
+    const text = codeEditor.value.substring(0, cursorPos);
+
+    // Find the partial word before cursor
+    const wordRegex = /[\w\.]*$/;
+    const match = text.match(wordRegex);
+
+    if (match && match[0]) {
+        const partialWord = match[0].toLowerCase();
+
+        // Znalezienie najlepszego dopasowania do pełnego słowa
+        const bestMatch = autocompleteItems.find(item => item.text.toLowerCase().startsWith(partialWord));
+
+        if (!bestMatch) {
+            hideAutocomplete();
+            return;
         }
+
+        const fullWord = bestMatch.text.toLowerCase();
+        const minLength = Math.ceil(fullWord.length * 0.25); // 25% pełnego słowa
+
+        // Pokaż sugestie tylko, jeśli wpisano przynajmniej 25% długości słowa
+        if (partialWord.length < minLength) {
+            hideAutocomplete();
+            return;
+        }
+
+        // Pobieranie dopasowanych sugestii
+        currentSuggestions = autocompleteItems.filter(item => 
+            item.text.toLowerCase().startsWith(partialWord) && 
+            item.text.toLowerCase() !== partialWord
+        );
+
+        if (currentSuggestions.length > 0) {               
+            // Populate suggestions
+            autocompleteBox.innerHTML = '';
+            currentSuggestions.forEach((suggestion, index) => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.innerHTML = `
+                    <span class="autocomplete-text">${suggestion.text}</span>
+                    <span class="autocomplete-type ${suggestion.type}-type">${suggestion.type}</span>
+                `;
+                item.dataset.index = index;
+                item.addEventListener('click', () => {
+                    insertSuggestion(suggestion.text);
+                });
+                autocompleteBox.appendChild(item);
+            });
+
+            autocompleteBox.style.display = 'block';
+            autocompleteVisible = true;
+            selectedAutocompleteIndex = -1;
+        } else {
+            hideAutocomplete();
+        }
+    } else {
+        hideAutocomplete();
+    }
+}
         
         function hideAutocomplete() {
             autocompleteBox.style.display = 'none';
