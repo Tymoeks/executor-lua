@@ -458,22 +458,29 @@ function highlightSyntax() {
     const Functions = [
         "assert", "collectgarbage", "dofile", "error", "getmetatable", "ipairs", "load", "loadfile", 
         "next", "pairs", "pcall", "print", "rawequal", "rawget", "rawset", "select", "setmetatable", 
-        "tonumber", "tostring", "type", "unpack", // basic functions
+        "tonumber", "tostring", "type", "unpack" // basic functions
     ];
 
     const Librariess = [
-        "math", "Random", "table", "string",
+        "math", "table", "string"
     ];
 
-    const dotFunctions = [
-    "synchronize", "new", "random", "desynchronize", "sqrt", "sin", "ceil", "floor", 
-    "abs", "acos", "asin", "atan", "atan2", "cos", "cosh", "deg", "exp", "fmod", 
-    "huge", "ldexp", "log", "log10", "max", "min", "modf", "pi", "pow", "rad", "sinh", "tanh",
-    "insert", "remove", "sort", "concat", "move", "getn", "foreach", "foreachi",
-    "byte", "char", "dump", "find", "format", "gmatch", 
-    "gsub", "len", "lower", "match", "rep", "reverse", 
-    "sub", "upper" // string functions
+    const dotmath = [
+        "random", "sqrt", "sin", "ceil", "floor", 
+        "abs", "acos", "asin", "atan", "atan2", "cos", "cosh", "deg", "exp", "fmod", 
+        "huge", "ldexp", "log", "log10", "max", "min", "modf", "pi", "pow", "rad", "sinh", "tanh"
     ];
+
+    const dottable = [
+        "insert", "remove", "sort", "concat", "move", "getn", "foreach", "foreachi"
+    ];
+    
+    const dotstring = [
+        "byte", "char", "dump", "find", "format", "gmatch", 
+        "gsub", "len", "lower", "match", "rep", "reverse", 
+        "sub", "upper"
+    ];
+
     // Store parts that should not be processed by other rules
     let parts = [];
     let processedCode = code;
@@ -510,13 +517,34 @@ function highlightSyntax() {
         });
     }
 
-// Built-in functions with dot (only if preceded by a dot)
-for (const keyword of dotFunctions) {
-    const regex = new RegExp(`(?<=\\.)(${keyword}\\b)`, 'g');
-    processedCode = processedCode.replace(regex, function(match) {
+// table .dot
+for (const keyword of dotmath) {
+    // Match 'table.' followed by the keyword
+    const regex = new RegExp(`\\b(math\\.)(${keyword})\\b`, 'g');
+    processedCode = processedCode.replace(regex, function(match, p1, p2) {
         const placeholder = `###BDOTFUNCTION${parts.length}###`;
-        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + match + '</span>');
-        return placeholder;
+        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
+        return p1 + placeholder;  // Keep 'table.' and apply the highlight only to the keyword
+    });
+}
+// table .dot
+for (const keyword of dottable) {
+    // Match 'table.' followed by the keyword
+    const regex = new RegExp(`\\b(table\\.)(${keyword})\\b`, 'g');
+    processedCode = processedCode.replace(regex, function(match, p1, p2) {
+        const placeholder = `###BDOTFUNCTION${parts.length}###`;
+        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
+        return p1 + placeholder;  // Keep 'table.' and apply the highlight only to the keyword
+    });
+}
+// string .dot
+for (const keyword of dotstring) {
+    // Match 'table.' followed by the keyword
+    const regex = new RegExp(`\\b(string\\.)(${keyword})\\b`, 'g');
+    processedCode = processedCode.replace(regex, function(match, p1, p2) {
+        const placeholder = `###BDOTFUNCTION${parts.length}###`;
+        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
+        return p1 + placeholder;  // Keep 'table.' and apply the highlight only to the keyword
     });
 }
 
