@@ -414,10 +414,28 @@
         .math-type { color: var(--dotf); }
         .string-type { color: var(--dotf); }
         .table-type { color: var(--dotf); }
-        
+
         .code-editor:not(:focus):not(:hover)::before,
         .code-editor:not(:focus):not(:hover)::after {
             display: none !important;
+        }
+        .code-editor::before,
+        .code-editor::after,
+        .code-editor ~ div[data-gramm],
+        .code-editor ~ div.gr-textarea-btn,
+        .code-editor ~ .grammarly-ghost,
+        .code-editor ~ div[data-grammarly-part],
+        .code-editor ~ grammarly-extension {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            width: 0 !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            z-index: -1 !important;
+            pointer-events: none !important;
         }
     </style>
 </head>
