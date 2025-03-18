@@ -432,8 +432,8 @@ print(math.random(1, 5))</textarea>
             lineNumbers.innerHTML = Array.from({length: lines.length}, (_, i) => i + 1).join("<br>");
         }
         
-        // Syntax highlighting
-        function highlightSyntax() {
+// Syntax highlighting
+function highlightSyntax() {
     let code = codeEditor.value;
     
     // Escape HTML entities first
@@ -479,7 +479,8 @@ print(math.random(1, 5))</textarea>
         const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
         processedCode = processedCode.replace(regex, function(match) {
             const placeholder = `###KEYWORD${parts.length}###`;
-            parts.push('<span class="keyword">' + match + '</span>');
+            // Add inline style for red and thick (bold) font
+            parts.push('<span class="keyword" style="color: red; font-weight: bold;">' + match + '</span>');
             return placeholder;
         });
     }
@@ -498,9 +499,7 @@ print(math.random(1, 5))</textarea>
         return placeholder;
     });
     
-    // Rest of your function remains the same...
     // Now wrap any remaining text in plain spans
-    // Split by placeholders
     let finalResult = '';
     let lastIndex = 0;
     
