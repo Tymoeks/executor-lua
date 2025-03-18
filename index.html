@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Executor Lua</title>
@@ -16,8 +17,12 @@
             --light-bg: #3d3d4a;
             --text-light: #f5f5f5;
             --text-dark: #333;
-            --keyword-red: #ff5252;
-            --editor-font: 'Courier New', monospace;
+            --keyword-red: #3499d3;
+            --keyword-orange: #ffb62e;
+            --bfunction: #8fe2f7;
+            --library: #6ad3ee;
+            --dotf: #30c5eb;
+            --editor-font: 'Fira Code', 'Courier New', monospace;
             --editor-font-size: 16px;
             --editor-line-height: 1.5;
             --default-text: #d4d4d4; /* Light gray for default text */
@@ -300,7 +305,7 @@
         }
         
         .message-type.błąd {
-            color: var(--keyword-red);
+            color: #e02727;
         }
         
         .message-content {
@@ -312,12 +317,8 @@
         }
         
         /* Syntax highlighting */
-        .keyword {
-            color: var(--keyword-red);
-        }
-        
         .string {
-            color: #9ccc65;
+            color: #8db85b;
         }
         
         .number {
@@ -325,12 +326,12 @@
         }
         
         .comment {
-            color: #78909c;
+            color: #697e88;
             font-style: italic;
         }
         
         .function {
-            color: #4fc3f7;
+            color: #fcf595;
         }
         
         .plain {
@@ -442,13 +443,37 @@ function highlightSyntax() {
                .replace(/>/g, "&gt;");
     
     // Define Lua keywords for highlighting
-    const keywords = [
+    const redkeywords = [
         "and", "break", "do", "else", "elseif", 
-        "end", "for", "function", "if", 
-        "in", "local", "not", "or", 
+        "end", "for", "function", "if", "self",
+        "in", "local", "not", "or", "continue",
         "repeat", "return", "then", "until", "while"
     ];
 
+    // Define keywords that should be orange
+    const orangeKeywords = [
+        "true", "false", "nil"
+    ];
+
+    const Functions = [
+        "assert", "collectgarbage", "dofile", "error", "getmetatable", "ipairs", "load", "loadfile", 
+        "next", "pairs", "pcall", "print", "rawequal", "rawget", "rawset", "select", "setmetatable", 
+        "tonumber", "tostring", "type", "unpack", // basic functions
+    ];
+
+    const Librariess = [
+        "math", "Random", "table", "string",
+    ];
+
+    const dotFunctions = [
+    "synchronize", "new", "random", "desynchronize", "sqrt", "sin", "ceil", "floor", 
+    "abs", "acos", "asin", "atan", "atan2", "cos", "cosh", "deg", "exp", "fmod", 
+    "huge", "ldexp", "log", "log10", "max", "min", "modf", "pi", "pow", "rad", "sinh", "tanh",
+    "insert", "remove", "sort", "concat", "move", "getn", "foreach", "foreachi",
+    "byte", "char", "dump", "find", "format", "gmatch", 
+    "gsub", "len", "lower", "match", "rep", "reverse", 
+    "sub", "upper" // string functions
+    ];
     // Store parts that should not be processed by other rules
     let parts = [];
     let processedCode = code;
@@ -475,22 +500,45 @@ function highlightSyntax() {
     });
     
     // Keywords (ensuring they are whole words)
-    for (const keyword of keywords) {
+    for (const keyword of redkeywords) {
         const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
         processedCode = processedCode.replace(regex, function(match) {
-            const placeholder = `###KEYWORD${parts.length}###`;
+            const placeholder = `###RED${parts.length}###`;
             // Add inline style for red and thick (bold) font
-            parts.push('<span class="keyword" style="color: red; font-weight: bold;">' + match + '</span>');
+            parts.push('<span class="red-keyword" style="color: var(--keyword-red); font-weight: bold;">' + match + '</span>');
             return placeholder;
         });
     }
-    
-    // print function (keeping this separate to maintain your original styling)
-    processedCode = processedCode.replace(/\b(print)\b/g, function(match) {
-        const placeholder = `###FUNCTION${parts.length}###`;
-        parts.push('<span class="function">' + match + '</span>');
+
+// Built-in functions with dot (only if preceded by a dot)
+for (const keyword of dotFunctions) {
+    const regex = new RegExp(`(?<=\\.)(${keyword}\\b)`, 'g');
+    processedCode = processedCode.replace(regex, function(match) {
+        const placeholder = `###BDOTFUNCTION${parts.length}###`;
+        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + match + '</span>');
         return placeholder;
     });
+}
+
+// Built-in functions with dot (only if preceded by a dot)
+for (const keyword of Functions) {
+    const regex = new RegExp(`\\b(${keyword})\\b(?=\\()`, 'g');  // Match the keyword followed by '('
+    processedCode = processedCode.replace(regex, function(match) {
+        const placeholder = `###BFUNCTION${parts.length}###`;
+        parts.push('<span class="bfunction" style="color: var(--bfunction); font-weight: plain;">' + match + '</span>');
+        return placeholder;
+    });
+}
+
+    // Orange Keywords
+    for (const keyword of orangeKeywords) {
+        const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
+        processedCode = processedCode.replace(regex, function(match) {
+            const placeholder = `###ORANGE${parts.length}###`;
+            parts.push('<span class="orange-keyword" style="color: var(--keyword-orange); font-weight: bold;">' + match + '</span>');
+            return placeholder;
+        });
+    }
     
     // Other function calls
     processedCode = processedCode.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, function(match, p1) {
@@ -498,13 +546,22 @@ function highlightSyntax() {
         parts.push('<span class="function">' + p1 + '</span>(');
         return placeholder;
     });
+
+    for (const keyword of Librariess) {
+    const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
+    processedCode = processedCode.replace(regex, function(match) {
+        const placeholder = `###BFUNCTION${parts.length}###`;
+        parts.push('<span class="bfunction" style="color: var(--library); font-weight: plain;">' + match + '</span>');
+        return placeholder;
+    });
+}
     
     // Now wrap any remaining text in plain spans
     let finalResult = '';
     let lastIndex = 0;
     
     // Regular expression to match all placeholders
-    const placeholderRegex = /###(COMMENT|STRING|NUMBER|KEYWORD|FUNCTION|ORANGE)(\d+)###/g;
+    const placeholderRegex = /###(COMMENT|STRING|NUMBER|FUNCTION|RED|ORANGE|BDOTFUNCTION|BFUNCTION)(\d+)###/g;
     let match;
     
     while ((match = placeholderRegex.exec(processedCode)) !== null) {
@@ -717,4 +774,4 @@ function highlightSyntax() {
         });
     </script>
 </body>
-</html>
+</html>s
