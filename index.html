@@ -365,6 +365,55 @@
         .pulse {
             animation: pulse 0.5s ease;
         }
+        
+        /* Autocomplete styles */
+        .autocomplete-box {
+            position: absolute; /* Zmiana z fixed na absolute */
+            bottom: 10px; /* Odstęp od dolnej krawędzi */
+            right: 10px; /* Odstęp od prawej krawędzi */
+            max-height: 200px;
+            width: 240px;
+            overflow-y: auto;
+            background-color: var(--medium-bg);
+            border: 1px solid var(--light-bg);
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            display: none;
+        }
+        
+        .autocomplete-item {
+            padding: 6px 12px;
+            cursor: pointer;
+            font-family: var(--editor-font);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .autocomplete-item:hover, .autocomplete-item.selected {
+            background-color: var(--primary-blue);
+        }
+        
+        .autocomplete-text {
+            flex: 1;
+        }
+        
+        .autocomplete-type {
+            margin-left: 10px;
+            font-size: 0.8em;
+            opacity: 0.7;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background-color: var(--dark-bg);
+        }
+        
+        .keyword-type { color: var(--keyword-red); }
+        .function-type { color: var(--bfunction); }
+        .library-type { color: var(--library); }
+        .math-type { color: var(--dotf); }
+        .string-type { color: var(--dotf); }
+        .table-type { color: var(--dotf); }
     </style>
 </head>
 <body>
@@ -379,6 +428,7 @@
                 <textarea id="code-editor" class="code-editor" spellcheck="false">-- Pisz swój kod tutaj.
 print(math.random(1, 5))</textarea>
                 <div id="highlight-layer"></div>
+                <div id="autocomplete-box" class="autocomplete-box"></div>
             </div>
         </div>
         
@@ -423,9 +473,104 @@ print(math.random(1, 5))</textarea>
         const clearBtn = document.getElementById("clear-btn");
         const outputElement = document.getElementById("output");
         const filterButtons = document.querySelectorAll(".filter-toggle");
+        const autocompleteBox = document.getElementById("autocomplete-box");
         
         // Current filter
         let currentFilter = "all";
+        
+        // Autocomplete variables
+        let selectedAutocompleteIndex = -1;
+        let autocompleteVisible = false;
+        let currentSuggestions = [];
+        
+        // Define autocomplete suggestions
+        const autocompleteItems = [
+            // Lua keywords
+            { text: "and", type: "keyword" },
+            { text: "break", type: "keyword" },
+            { text: "do", type: "keyword" },
+            { text: "else", type: "keyword" },
+            { text: "elseif", type: "keyword" },
+            { text: "end", type: "keyword" },
+            { text: "for", type: "keyword" },
+            { text: "function", type: "keyword" },
+            { text: "if", type: "keyword" },
+            { text: "in", type: "keyword" },
+            { text: "local", type: "keyword" },
+            { text: "not", type: "keyword" },
+            { text: "or", type: "keyword" },
+            { text: "repeat", type: "keyword" },
+            { text: "return", type: "keyword" },
+            { text: "then", type: "keyword" },
+            { text: "until", type: "keyword" },
+            { text: "while", type: "keyword" },
+            { text: "true", type: "keyword" },
+            { text: "false", type: "keyword" },
+            { text: "nil", type: "keyword" },
+            
+            // Basic functions
+            { text: "print", type: "function" },
+            { text: "tonumber", type: "function" },
+            { text: "tostring", type: "function" },
+            { text: "type", type: "function" },
+            { text: "pairs", type: "function" },
+            { text: "ipairs", type: "function" },
+            { text: "pcall", type: "function" },
+            { text: "error", type: "function" },
+            { text: "assert", type: "function" },
+            
+            // Libraries
+            { text: "math", type: "library" },
+            { text: "string", type: "library" },
+            { text: "table", type: "library" },
+            
+            // Math functions
+            { text: "math.abs", type: "math" },
+            { text: "math.acos", type: "math" },
+            { text: "math.asin", type: "math" },
+            { text: "math.atan", type: "math" },
+            { text: "math.ceil", type: "math" },
+            { text: "math.cos", type: "math" },
+            { text: "math.deg", type: "math" },
+            { text: "math.exp", type: "math" },
+            { text: "math.floor", type: "math" },
+            { text: "math.fmod", type: "math" },
+            { text: "math.huge", type: "math" },
+            { text: "math.log", type: "math" },
+            { text: "math.max", type: "math" },
+            { text: "math.min", type: "math" },
+            { text: "math.modf", type: "math" },
+            { text: "math.pi", type: "math" },
+            { text: "math.rad", type: "math" },
+            { text: "math.random", type: "math" },
+            { text: "math.randomseed", type: "math" },
+            { text: "math.sin", type: "math" },
+            { text: "math.sqrt", type: "math" },
+            { text: "math.tan", type: "math" },
+            
+            // String functions
+            { text: "string.byte", type: "string" },
+            { text: "string.char", type: "string" },
+            { text: "string.find", type: "string" },
+            { text: "string.format", type: "string" },
+            { text: "string.gmatch", type: "string" },
+            { text: "string.gsub", type: "string" },
+            { text: "string.len", type: "string" },
+            { text: "string.lower", type: "string" },
+            { text: "string.match", type: "string" },
+            { text: "string.rep", type: "string" },
+            { text: "string.reverse", type: "string" },
+            { text: "string.sub", type: "string" },
+            { text: "string.upper", type: "string" },
+            
+            // Table functions
+            { text: "table.concat", type: "table" },
+            { text: "table.insert", type: "table" },
+            { text: "table.remove", type: "table" },
+            { text: "table.sort", type: "table" },
+            { text: "table.unpack", type: "table" },
+            { text: "table.getn", type: "table" }
+        ];
         
         // Line numbers functionality
         function updateLineNumbers() {
@@ -433,192 +578,334 @@ print(math.random(1, 5))</textarea>
             lineNumbers.innerHTML = Array.from({length: lines.length}, (_, i) => i + 1).join("<br>");
         }
         
-// Syntax highlighting
-function highlightSyntax() {
-    let code = codeEditor.value;
-    
-    // Escape HTML entities first
-    code = code.replace(/&/g, "&amp;")
-               .replace(/</g, "&lt;")
-               .replace(/>/g, "&gt;");
-    
-    // Define Lua keywords for highlighting
-    const redkeywords = [
-        "and", "break", "do", "else", "elseif", 
-        "end", "for", "function", "if", "self",
-        "in", "local", "not", "or", "continue",
-        "repeat", "return", "then", "until", "while"
-    ];
-
-    // Define keywords that should be orange
-    const orangeKeywords = [
-        "true", "false", "nil"
-    ];
-
-    const Functions = [
-        "assert", "collectgarbage", "dofile", "error", "getmetatable", "ipairs", "load", "loadfile", 
-        "next", "pairs", "pcall", "print", "rawequal", "rawget", "rawset", "select", "setmetatable", 
-        "tonumber", "tostring", "type", "unpack" // basic functions
-    ];
-
-    const Librariess = [
-        "math", "table", "string"
-    ];
-
-    const dotmath = [
-        "random", "sqrt", "sin", "ceil", "floor", 
-        "abs", "acos", "asin", "atan", "atan2", "cos", "cosh", "deg", "exp", "fmod", 
-        "huge", "ldexp", "log", "log10", "max", "min", "modf", "pi", "pow", "rad", "sinh", "tanh"
-    ];
-
-    const dottable = [
-        "insert", "remove", "sort", "concat", "move", "getn", "foreach", "foreachi"
-    ];
-    
-    const dotstring = [
-        "byte", "char", "dump", "find", "format", "gmatch", 
-        "gsub", "len", "lower", "match", "rep", "reverse", 
-        "sub", "upper"
-    ];
-
-    // Store parts that should not be processed by other rules
-    let parts = [];
-    let processedCode = code;
-    
-    // Comments (store and replace with placeholder)
-    processedCode = processedCode.replace(/(--.*?)($|\n)/g, function(match) {
-        const placeholder = `###COMMENT${parts.length}###`;
-        parts.push('<span class="comment">' + match + '</span>');
-        return placeholder;
-    });
-    
-    // Strings (store and replace with placeholder)
-    processedCode = processedCode.replace(/(".*?"|'.*?')/g, function(match) {
-        const placeholder = `###STRING${parts.length}###`;
-        parts.push('<span class="string">' + match + '</span>');
-        return placeholder;
-    });
-    
-    // Numbers
-    processedCode = processedCode.replace(/\b(\d+\.?\d*)\b/g, function(match) {
-        const placeholder = `###NUMBER${parts.length}###`;
-        parts.push('<span class="number">' + match + '</span>');
-        return placeholder;
-    });
-    
-    // Keywords (ensuring they are whole words)
-    for (const keyword of redkeywords) {
-        const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
-        processedCode = processedCode.replace(regex, function(match) {
-            const placeholder = `###RED${parts.length}###`;
-            // Add inline style for red and thick (bold) font
-            parts.push('<span class="red-keyword" style="color: var(--keyword-red); font-weight: bold;">' + match + '</span>');
-            return placeholder;
-        });
-    }
-
-// table .dot
-for (const keyword of dotmath) {
-    // Match 'table.' followed by the keyword
-    const regex = new RegExp(`\\b(math\\.)(${keyword})\\b`, 'g');
-    processedCode = processedCode.replace(regex, function(match, p1, p2) {
-        const placeholder = `###BDOTFUNCTION${parts.length}###`;
-        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
-        return p1 + placeholder;  // Keep 'table.' and apply the highlight only to the keyword
-    });
-}
-// table .dot
-for (const keyword of dottable) {
-    // Match 'table.' followed by the keyword
-    const regex = new RegExp(`\\b(table\\.)(${keyword})\\b`, 'g');
-    processedCode = processedCode.replace(regex, function(match, p1, p2) {
-        const placeholder = `###BDOTFUNCTION${parts.length}###`;
-        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
-        return p1 + placeholder;  // Keep 'table.' and apply the highlight only to the keyword
-    });
-}
-// string .dot
-for (const keyword of dotstring) {
-    // Match 'table.' followed by the keyword
-    const regex = new RegExp(`\\b(string\\.)(${keyword})\\b`, 'g');
-    processedCode = processedCode.replace(regex, function(match, p1, p2) {
-        const placeholder = `###BDOTFUNCTION${parts.length}###`;
-        parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
-        return p1 + placeholder;  // Keep 'table.' and apply the highlight only to the keyword
-    });
-}
-
-// Built-in functions with dot (only if preceded by a dot)
-for (const keyword of Functions) {
-    const regex = new RegExp(`\\b(${keyword})\\b(?=\\()`, 'g');  // Match the keyword followed by '('
-    processedCode = processedCode.replace(regex, function(match) {
-        const placeholder = `###BFUNCTION${parts.length}###`;
-        parts.push('<span class="bfunction" style="color: var(--bfunction); font-weight: plain;">' + match + '</span>');
-        return placeholder;
-    });
-}
-
-    // Orange Keywords
-    for (const keyword of orangeKeywords) {
-        const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
-        processedCode = processedCode.replace(regex, function(match) {
-            const placeholder = `###ORANGE${parts.length}###`;
-            parts.push('<span class="orange-keyword" style="color: var(--keyword-orange); font-weight: bold;">' + match + '</span>');
-            return placeholder;
-        });
-    }
-    
-    // Other function calls
-    processedCode = processedCode.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, function(match, p1) {
-        const placeholder = `###FUNCTION${parts.length}###`;
-        parts.push('<span class="function">' + p1 + '</span>(');
-        return placeholder;
-    });
-
-    for (const keyword of Librariess) {
-    const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
-    processedCode = processedCode.replace(regex, function(match) {
-        const placeholder = `###BFUNCTION${parts.length}###`;
-        parts.push('<span class="bfunction" style="color: var(--library); font-weight: plain;">' + match + '</span>');
-        return placeholder;
-    });
-}
-    
-    // Now wrap any remaining text in plain spans
-    let finalResult = '';
-    let lastIndex = 0;
-    
-    // Regular expression to match all placeholders
-    const placeholderRegex = /###(COMMENT|STRING|NUMBER|FUNCTION|RED|ORANGE|BDOTFUNCTION|BFUNCTION)(\d+)###/g;
-    let match;
-    
-    while ((match = placeholderRegex.exec(processedCode)) !== null) {
-        // Add plain text before the placeholder
-        if (match.index > lastIndex) {
-            const plainText = processedCode.substring(lastIndex, match.index);
-            finalResult += '<span class="plain">' + plainText + '</span>';
+        // Funkcja pozycjonująca boks autouzupełniania w prawym dolnym rogu edytora
+        function positionAutocompleteBox() {
+            const editorRect = codeEditor.getBoundingClientRect();
+            
+            // Ustaw pozycję w prawym dolnym rogu z odstępem
+            autocompleteBox.style.left = (editorRect.right - 245) + 'px';
+            autocompleteBox.style.top = (editorRect.bottom - 205) + 'px';
         }
         
-        // Add the preserved part for this placeholder
-        const partIndex = parseInt(match[2]);
-        finalResult += parts[partIndex];
+        // Autocomplete functionality
+        function showAutocomplete() {
+            const cursorPos = codeEditor.selectionStart;
+            const text = codeEditor.value.substring(0, cursorPos);
+            
+            // Find the partial word before cursor
+            const wordRegex = /[\w\.]*$/;
+            const match = text.match(wordRegex);
+            
+            if (match && match[0]) {
+                const partialWord = match[0].toLowerCase();
+                
+                // Tylko pokaż sugestie jeśli wpisano przynajmniej 2 znaki
+                if (partialWord.length < 2) {
+                    hideAutocomplete();
+                    return;
+                }
+                
+                // Get matching suggestions
+                currentSuggestions = autocompleteItems.filter(item => 
+                    item.text.toLowerCase().startsWith(partialWord) && 
+                    item.text.toLowerCase() !== partialWord
+                );
+                
+                if (currentSuggestions.length > 0) {               
+                    // Populate suggestions
+                    autocompleteBox.innerHTML = '';
+                    currentSuggestions.forEach((suggestion, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'autocomplete-item';
+                        item.innerHTML = `
+                            <span class="autocomplete-text">${suggestion.text}</span>
+                            <span class="autocomplete-type ${suggestion.type}-type">${suggestion.type}</span>
+                        `;
+                        item.dataset.index = index;
+                        item.addEventListener('click', () => {
+                            insertSuggestion(suggestion.text);
+                        });
+                        autocompleteBox.appendChild(item);
+                    });
+                    
+                    autocompleteBox.style.display = 'block';
+                    autocompleteVisible = true;
+                    selectedAutocompleteIndex = -1;
+                } else {
+                    hideAutocomplete();
+                }
+            } else {
+                hideAutocomplete();
+            }
+        }
         
-        lastIndex = match.index + match[0].length;
-    }
-    
-    // Add any remaining text
-    if (lastIndex < processedCode.length) {
-        const plainText = processedCode.substring(lastIndex);
-        finalResult += '<span class="plain">' + plainText + '</span>';
-    }
-    
-    // Update the highlight layer
-    highlightLayer.innerHTML = finalResult;
-    
-    // Sync scroll position with the editor
-    highlightLayer.scrollTop = codeEditor.scrollTop;
-    highlightLayer.scrollLeft = codeEditor.scrollLeft;
-}
+        function hideAutocomplete() {
+            autocompleteBox.style.display = 'none';
+            autocompleteVisible = false;
+            selectedAutocompleteIndex = -1;
+        }
+        
+        function insertSuggestion(suggestion) {
+            const cursorPos = codeEditor.selectionStart;
+            const text = codeEditor.value.substring(0, cursorPos);
+            
+            // Find the partial word before cursor
+            const wordRegex = /[\w\.]*$/;
+            const match = text.match(wordRegex);
+            
+            if (match) {
+                const partialWord = match[0];
+                const startPos = cursorPos - partialWord.length;
+                
+                // Replace the partial word with the suggestion
+                codeEditor.value = 
+                    codeEditor.value.substring(0, startPos) + 
+                    suggestion + 
+                    codeEditor.value.substring(cursorPos);
+                
+                // Move cursor to the end of the inserted suggestion
+                codeEditor.selectionStart = codeEditor.selectionEnd = startPos + suggestion.length;
+                
+                // Update syntax highlighting
+                updateLineNumbers();
+                highlightSyntax();
+                hideAutocomplete();
+            }
+        }
+        
+        function handleAutocompleteKeys(e) {
+            if (!autocompleteVisible) return;
+            
+            const items = autocompleteBox.querySelectorAll('.autocomplete-item');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                // Remove selection from current item
+                if (selectedAutocompleteIndex >= 0) {
+                    items[selectedAutocompleteIndex].classList.remove('selected');
+                }
+                
+                // Select next item
+                selectedAutocompleteIndex = (selectedAutocompleteIndex + 1) % items.length;
+                items[selectedAutocompleteIndex].classList.add('selected');
+                
+                // Scroll if needed
+                items[selectedAutocompleteIndex].scrollIntoView({ block: 'nearest' });
+            } 
+            else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                // Remove selection from current item
+                if (selectedAutocompleteIndex >= 0) {
+                    items[selectedAutocompleteIndex].classList.remove('selected');
+                }
+                
+                // Select previous item
+                selectedAutocompleteIndex = (selectedAutocompleteIndex - 1 + items.length) % items.length;
+                items[selectedAutocompleteIndex].classList.add('selected');
+                
+                // Scroll if needed
+                items[selectedAutocompleteIndex].scrollIntoView({ block: 'nearest' });
+            } 
+            else if (e.key === 'Enter' || e.key === 'Tab') {
+                e.preventDefault();
+                if (selectedAutocompleteIndex >= 0) {
+                    insertSuggestion(currentSuggestions[selectedAutocompleteIndex].text);
+                } else if (items.length > 0) {
+                    insertSuggestion(currentSuggestions[0].text);
+                }
+            } 
+            else if (e.key === 'Escape') {
+                e.preventDefault();
+                hideAutocomplete();
+            }
+        }
+        
+        // Syntax highlighting
+        function highlightSyntax() {
+            let code = codeEditor.value;
+            
+            // Escape HTML entities first
+            code = code.replace(/&/g, "&amp;")
+                     .replace(/</g, "&lt;")
+                     .replace(/>/g, "&gt;");
+            
+            // Define Lua keywords for highlighting
+            const redkeywords = [
+                "and", "break", "do", "else", "elseif", 
+                "end", "for", "function", "if", "self",
+                "in", "local", "not", "or", "continue",
+                "repeat", "return", "then", "until", "while"
+            ];
+
+            // Define keywords that should be orange
+            const orangeKeywords = [
+                "true", "false", "nil"
+            ];
+
+            const Functions = [
+                "assert", "collectgarbage", "dofile", "error", "getmetatable", "ipairs", "load", "loadfile", 
+                "next", "pairs", "pcall", "print", "rawequal", "rawget", "rawset", "select", "setmetatable", 
+                "tonumber", "tostring", "type", "unpack" // basic functions
+            ];
+
+            const Librariess = [
+                "math", "table", "string"
+            ];
+
+            const dotmath = [
+                "random", "sqrt", "sin", "ceil", "floor", 
+                "abs", "acos", "asin", "atan", "atan2", "cos", "cosh", "deg", "exp", "fmod", 
+                "huge", "ldexp", "log", "log10", "max", "min", "modf", "pi", "pow", "rad", "sinh", "tanh"
+            ];
+
+            const dottable = [
+                "insert", "remove", "sort", "concat", "move", "getn", "foreach", "foreachi"
+            ];
+            
+            const dotstring = [
+                "byte", "char", "dump", "find", "format", "gmatch", 
+                "gsub", "len", "lower", "match", "rep", "reverse", 
+                "sub", "upper"
+            ];
+
+            // Store parts that should not be processed by other rules
+            let parts = [];
+            let processedCode = code;
+            
+            // Comments (store and replace with placeholder)
+            processedCode = processedCode.replace(/(--.*?)($|\n)/g, function(match) {
+                const placeholder = `###COMMENT${parts.length}###`;
+                parts.push('<span class="comment">' + match + '</span>');
+                return placeholder;
+            });
+            
+            // Strings (store and replace with placeholder)
+            processedCode = processedCode.replace(/(".*?"|'.*?')/g, function(match) {
+                const placeholder = `###STRING${parts.length}###`;
+                parts.push('<span class="string">' + match + '</span>');
+                return placeholder;
+            });
+            
+            // Numbers
+            processedCode = processedCode.replace(/\b(\d+\.?\d*)\b/g, function(match) {
+                const placeholder = `###NUMBER${parts.length}###`;
+                parts.push('<span class="number">' + match + '</span>');
+                return placeholder;
+            });
+            
+            // Keywords (ensuring they are whole words)
+            for (const keyword of redkeywords) {
+                const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
+                processedCode = processedCode.replace(regex, function(match) {
+                    const placeholder = `###RED${parts.length}###`;
+                    // Add inline style for red and thick (bold) font
+                    parts.push('<span class="red-keyword" style="color: var(--keyword-red); font-weight: bold;">' + match + '</span>');
+                    return placeholder;
+                });
+            }
+
+            // table .dot
+            for (const keyword of dotmath) {
+                // Match 'table.' followed by the keyword
+                const regex = new RegExp(`\\b(math\\.)(${keyword})\\b`, 'g');
+                processedCode = processedCode.replace(regex, function(match, p1, p2) {
+                    const placeholder = `###BDOTFUNCTION${parts.length}###`;
+                    parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
+                    return p1 + placeholder;  // Keep 'table.' and apply the highlight only to the keyword
+                });
+            }
+            // table .dot
+            for (const keyword of dottable) {
+                // Match 'table.' followed by the keyword
+                const regex = new RegExp(`\\b(table\\.)(${keyword})\\b`, 'g');
+                processedCode = processedCode.replace(regex, function(match, p1, p2) {
+                    const placeholder = `###BDOTFUNCTION${parts.length}###`;
+                    parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
+                    return p1 + placeholder;  // Keep 'table.' and apply the highlight only to the keyword
+                });
+            }
+            // string .dot
+            for (const keyword of dotstring) {
+                // Match 'table.' followed by the keyword
+                const regex = new RegExp(`\\b(string\\.)(${keyword})\\b`, 'g');
+                processedCode = processedCode.replace(regex, function(match, p1, p2) {
+                    const placeholder = `###BDOTFUNCTION${parts.length}###`;
+                    parts.push('<span class="bfunction" style="color: var(--dotf); font-weight: plain;">' + p2 + '</span>');
+                    return p1 + placeholder;  // Keep 'table.' and apply the highlight only to the keyword
+                });
+            }
+
+            // Built-in functions with dot (only if preceded by a dot)
+            for (const keyword of Functions) {
+                const regex = new RegExp(`\\b(${keyword})\\b(?=\\()`, 'g');  // Match the keyword followed by '('
+                processedCode = processedCode.replace(regex, function(match) {
+                    const placeholder = `###BFUNCTION${parts.length}###`;
+                    parts.push('<span class="bfunction" style="color: var(--bfunction); font-weight: plain;">' + match + '</span>');
+                    return placeholder;
+                });
+            }
+
+            // Orange Keywords
+            for (const keyword of orangeKeywords) {
+                const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
+                processedCode = processedCode.replace(regex, function(match) {
+                    const placeholder = `###ORANGE${parts.length}###`;
+                    parts.push('<span class="orange-keyword" style="color: var(--keyword-orange); font-weight: bold;">' + match + '</span>');
+                    return placeholder;
+                });
+            }
+            
+            // Other function calls
+            processedCode = processedCode.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, function(match, p1) {
+                const placeholder = `###FUNCTION${parts.length}###`;
+                parts.push('<span class="function">' + p1 + '</span>(');
+                return placeholder;
+            });
+
+            for (const keyword of Librariess) {
+                const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
+                processedCode = processedCode.replace(regex, function(match) {
+                    const placeholder = `###BFUNCTION${parts.length}###`;
+                    parts.push('<span class="bfunction" style="color: var(--library); font-weight: plain;">' + match + '</span>');
+                    return placeholder;
+                });
+            }
+            
+            // Now wrap any remaining text in plain spans
+            let finalResult = '';
+            let lastIndex = 0;
+            
+            // Regular expression to match all placeholders
+            const placeholderRegex = /###(COMMENT|STRING|NUMBER|FUNCTION|RED|ORANGE|BDOTFUNCTION|BFUNCTION)(\d+)###/g;
+            let match;
+            
+            while ((match = placeholderRegex.exec(processedCode)) !== null) {
+                // Add plain text before the placeholder
+                if (match.index > lastIndex) {
+                    const plainText = processedCode.substring(lastIndex, match.index);
+                    finalResult += '<span class="plain">' + plainText + '</span>';
+                }
+                
+                // Add the preserved part for this placeholder
+                const partIndex = parseInt(match[2]);
+                finalResult += parts[partIndex];
+                
+                lastIndex = match.index + match[0].length;
+            }
+            
+            // Add any remaining text
+            if (lastIndex < processedCode.length) {
+                const plainText = processedCode.substring(lastIndex);
+                finalResult += '<span class="plain">' + plainText + '</span>';
+            }
+            
+            // Update the highlight layer
+            highlightLayer.innerHTML = finalResult;
+            
+            // Sync scroll position with the editor
+            highlightLayer.scrollTop = codeEditor.scrollTop;
+            highlightLayer.scrollLeft = codeEditor.scrollLeft;
+        }
         
         // Initialize editor
         function initializeEditor() {
@@ -629,6 +916,7 @@ for (const keyword of Functions) {
             codeEditor.addEventListener("input", function() {
                 updateLineNumbers();
                 highlightSyntax();
+                showAutocomplete();
             });
             
             codeEditor.addEventListener("scroll", function() {
@@ -637,6 +925,19 @@ for (const keyword of Functions) {
             });
             
             codeEditor.addEventListener("keydown", function(e) {
+                if (autocompleteVisible) {
+                    // Handle autocomplete navigation
+                    if (['ArrowDown', 'ArrowUp', 'Enter', 'Tab', 'Escape'].includes(e.key)) {
+                        handleAutocompleteKeys(e);
+                        return;
+                    }
+                }
+                
+                // Ukryj autocomplete przy zmianie linii
+                if (e.key === "Enter") {
+                    hideAutocomplete();
+                }
+                
                 if (e.key === "Tab") {
                     e.preventDefault();
                     const start = this.selectionStart;
@@ -653,65 +954,78 @@ for (const keyword of Functions) {
                     highlightSyntax();
                 }
             });
+            
+            // Obsługa utraty fokusu - ukryj autocomplete
+            codeEditor.addEventListener("blur", function(e) {
+                // Dodaj małe opóźnienie, aby można było kliknąć opcję z autocomplete
+                setTimeout(hideAutocomplete, 200);
+            });
+            
+            // Ukryj box przy kliknięciu poza nim
+            document.addEventListener("click", function(e) {
+                if (!autocompleteBox.contains(e.target) && e.target !== codeEditor) {
+                    hideAutocomplete();
+                }
+            });
         }
         
         // Run Lua code
         function runLuaCode() {
             const code = codeEditor.value;
     
-    // Create a timestamp
-    const timestamp = new Date().toLocaleTimeString();
-    
-    try {
-        // Create a new Lua state
-        const L = fengari.lauxlib.luaL_newstate();
-        
-        // Load Lua standard libraries
-        fengari.lualib.luaL_openlibs(L);
-        
-        // Custom print function to capture output
-        const printFunction = function(L) {
-            const nargs = fengari.lua.lua_gettop(L);
-            let message = '';
+            // Create a timestamp
+            const timestamp = new Date().toLocaleTimeString();
             
-            for (let i = 1; i <= nargs; i++) {
-                message += fengari.lua.lua_tojsstring(L, i);
-                if (i < nargs) message += '\t';
+            try {
+                // Create a new Lua state
+                const L = fengari.lauxlib.luaL_newstate();
+                
+                // Load Lua standard libraries
+                fengari.lualib.luaL_openlibs(L);
+                
+                // Custom print function to capture output
+                const printFunction = function(L) {
+                    const nargs = fengari.lua.lua_gettop(L);
+                    let message = '';
+                    
+                    for (let i = 1; i <= nargs; i++) {
+                        message += fengari.lua.lua_tojsstring(L, i);
+                        if (i < nargs) message += '\t';
+                    }
+                    
+                    // Add the captured output to our display
+                    addOutputMessage("print", message, timestamp);
+                    
+                    return 0;
+                };
+                
+                // Override the print function
+                fengari.lua.lua_pushcfunction(L, printFunction);
+                fengari.lua.lua_setglobal(L, 'print');
+                
+                // Run the code
+                const status = fengari.lauxlib.luaL_dostring(L, fengari.to_luastring(code));
+                
+                // Handle errors
+                if (status !== fengari.lua.LUA_OK) {
+                    const errorMsg = fengari.lua.lua_tojsstring(L, -1);
+                    addOutputMessage("błąd", errorMsg, timestamp);
+                } else {
+                    // Add success message
+                    addOutputMessage("info", "Kod wykonany pomyślnie.", timestamp);
+                }
+                
+            } catch (error) {
+                // Handle errors
+                addOutputMessage("błąd", error.message, timestamp);
             }
             
-            // Add the captured output to our display
-            addOutputMessage("print", message, timestamp);
+            // Apply animation to the run button
+            runBtn.classList.add("pulse");
+            setTimeout(() => runBtn.classList.remove("pulse"), 500);
             
-            return 0;
-        };
-        
-        // Override the print function
-        fengari.lua.lua_pushcfunction(L, printFunction);
-        fengari.lua.lua_setglobal(L, 'print');
-        
-        // Run the code
-        const status = fengari.lauxlib.luaL_dostring(L, fengari.to_luastring(code));
-        
-        // Handle errors
-        if (status !== fengari.lua.LUA_OK) {
-            const errorMsg = fengari.lua.lua_tojsstring(L, -1);
-            addOutputMessage("błąd", errorMsg, timestamp);
-        } else {
-            // Add success message
-            addOutputMessage("info", "Kod wykonany pomyślnie.", timestamp);
-        }
-        
-    } catch (error) {
-        // Handle errors
-        addOutputMessage("błąd", error.message, timestamp);
-    }
-    
-    // Apply animation to the run button
-    runBtn.classList.add("pulse");
-    setTimeout(() => runBtn.classList.remove("pulse"), 500);
-    
-    // Filter messages based on current filter
-    applyFilter();
+            // Filter messages based on current filter
+            applyFilter();
         }
         
         // Add message to output
