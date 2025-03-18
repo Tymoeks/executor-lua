@@ -408,12 +408,17 @@
             background-color: var(--dark-bg);
         }
         
-        .keyword-type { color: var(--keyword-red); }
-        .function-type { color: var(--bfunction); }
-        .library-type { color: var(--library); }
-        .math-type { color: var(--dotf); }
-        .string-type { color: var(--dotf); }
-        .table-type { color: var(--dotf); }
+        .keyword-type    { color: var(--keyword-red); }
+        .function-type   { color: var(--bfunction); }
+        .library-type    { color: var(--library); }
+        .math-type       { color: var(--dotf); }
+        .string-type     { color: var(--dotf); }
+        .table-type      { color: var(--dotf); }
+        .io-type         { color: var(--dotf); }        /* New: IO library functions */
+        .os-type         { color: var(--dotf); }        /* New: OS library functions */
+        .package-type    { color: var(--dotf); }        /* New: Package library functions */
+        .coroutine-type  { color: var(--dotf); }        /* New: Coroutine library functions */
+        .debug-type      { color: var(--dotf); }        /* New: Debug library functions */
 
         .code-editor:not(:focus):not(:hover)::before,
         .code-editor:not(:focus):not(:hover)::after {
@@ -536,7 +541,8 @@ print(math.random(1, 5))</textarea>
             { text: "true", type: "keyword" },
             { text: "false", type: "keyword" },
             { text: "nil", type: "keyword" },
-            
+            { text: "goto", type: "keyword" },
+
             // Basic functions
             { text: "print", type: "function" },
             { text: "tonumber", type: "function" },
@@ -547,25 +553,46 @@ print(math.random(1, 5))</textarea>
             { text: "pcall", type: "function" },
             { text: "error", type: "function" },
             { text: "assert", type: "function" },
-            
+            { text: "collectgarbage", type: "function" },
+            { text: "dofile", type: "function" },
+            { text: "getmetatable", type: "function" },
+            { text: "load", type: "function" },
+            { text: "loadfile", type: "function" },
+            { text: "next", type: "function" },
+            { text: "rawequal", type: "function" },
+            { text: "rawget", type: "function" },
+            { text: "rawset", type: "function" },
+            { text: "select", type: "function" },
+            { text: "setmetatable", type: "function" },
+            { text: "xpcall", type: "function" },
+
             // Libraries
             { text: "math", type: "library" },
             { text: "string", type: "library" },
             { text: "table", type: "library" },
-            
+            { text: "io", type: "library" },
+            { text: "os", type: "library" },
+            { text: "package", type: "library" },
+            { text: "coroutine", type: "library" },
+            { text: "debug", type: "library" },
+
             // Math functions
             { text: "math.abs", type: "math" },
             { text: "math.acos", type: "math" },
             { text: "math.asin", type: "math" },
             { text: "math.atan", type: "math" },
+            { text: "math.atan2", type: "math" },
             { text: "math.ceil", type: "math" },
             { text: "math.cos", type: "math" },
+            { text: "math.cosh", type: "math" },
             { text: "math.deg", type: "math" },
             { text: "math.exp", type: "math" },
             { text: "math.floor", type: "math" },
             { text: "math.fmod", type: "math" },
             { text: "math.huge", type: "math" },
+            { text: "math.ldexp", type: "math" },
             { text: "math.log", type: "math" },
+            { text: "math.log10", type: "math" },
             { text: "math.max", type: "math" },
             { text: "math.min", type: "math" },
             { text: "math.modf", type: "math" },
@@ -574,12 +601,16 @@ print(math.random(1, 5))</textarea>
             { text: "math.random", type: "math" },
             { text: "math.randomseed", type: "math" },
             { text: "math.sin", type: "math" },
+            { text: "math.sinh", type: "math" },
             { text: "math.sqrt", type: "math" },
             { text: "math.tan", type: "math" },
-            
+            { text: "math.tanh", type: "math" },
+            { text: "math.pow", type: "math" },
+
             // String functions
             { text: "string.byte", type: "string" },
             { text: "string.char", type: "string" },
+            { text: "string.dump", type: "string" },
             { text: "string.find", type: "string" },
             { text: "string.format", type: "string" },
             { text: "string.gmatch", type: "string" },
@@ -591,14 +622,73 @@ print(math.random(1, 5))</textarea>
             { text: "string.reverse", type: "string" },
             { text: "string.sub", type: "string" },
             { text: "string.upper", type: "string" },
-            
+
             // Table functions
             { text: "table.concat", type: "table" },
             { text: "table.insert", type: "table" },
             { text: "table.remove", type: "table" },
             { text: "table.sort", type: "table" },
             { text: "table.unpack", type: "table" },
-            { text: "table.getn", type: "table" }
+            { text: "table.getn", type: "table" },
+            { text: "table.move", type: "table" },
+            { text: "table.foreach", type: "table" },
+            { text: "table.foreachi", type: "table" },
+
+            // IO functions
+            { text: "io.close", type: "io" },
+            { text: "io.flush", type: "io" },
+            { text: "io.input", type: "io" },
+            { text: "io.lines", type: "io" },
+            { text: "io.open", type: "io" },
+            { text: "io.output", type: "io" },
+            { text: "io.popen", type: "io" },
+            { text: "io.read", type: "io" },
+            { text: "io.tmpfile", type: "io" },
+            { text: "io.type", type: "io" },
+            { text: "io.write", type: "io" },
+
+            // OS functions
+            { text: "os.clock", type: "os" },
+            { text: "os.date", type: "os" },
+            { text: "os.difftime", type: "os" },
+            { text: "os.execute", type: "os" },
+            { text: "os.exit", type: "os" },
+            { text: "os.getenv", type: "os" },
+            { text: "os.remove", type: "os" },
+            { text: "os.rename", type: "os" },
+            { text: "os.setlocale", type: "os" },
+            { text: "os.time", type: "os" },
+
+            // Package functions
+            { text: "package.loadlib", type: "package" },
+            { text: "package.searchpath", type: "package" },
+            { text: "package.preload", type: "package" },
+            { text: "package.loaded", type: "package" },
+            { text: "package.config", type: "package" },
+            { text: "package.path", type: "package" },
+            { text: "package.cpath", type: "package" },
+            { text: "package.require", type: "package" },
+            { text: "package.module", type: "package" },
+
+            // Coroutine functions
+            { text: "coroutine.create", type: "coroutine" },
+            { text: "coroutine.resume", type: "coroutine" },
+            { text: "coroutine.running", type: "coroutine" },
+            { text: "coroutine.status", type: "coroutine" },
+            { text: "coroutine.wrap", type: "coroutine" },
+            { text: "coroutine.yield", type: "coroutine" },
+
+            // Debug functions
+            { text: "debug.debug", type: "debug" },
+            { text: "debug.gethook", type: "debug" },
+            { text: "debug.sethook", type: "debug" },
+            { text: "debug.getinfo", type: "debug" },
+            { text: "debug.getlocal", type: "debug" },
+            { text: "debug.setlocal", type: "debug" },
+            { text: "debug.getmetatable", type: "debug" },
+            { text: "debug.getregistry", type: "debug" },
+            { text: "debug.getupvalue", type: "debug" },
+            { text: "debug.setupvalue", type: "debug" }
         ];
         
         // Line numbers functionality
@@ -749,27 +839,27 @@ print(math.random(1, 5))</textarea>
             }
         }
         
-        // Syntax highlighting
-        function highlightSyntax() {
-            let code = codeEditor.value;
+// Syntax highlighting
+function highlightSyntax() {
+    let code = codeEditor.value;
             
-            // Escape HTML entities first
-            code = code.replace(/&/g, "&amp;")
-                     .replace(/</g, "&lt;")
-                     .replace(/>/g, "&gt;");
+    // Escape HTML entities first
+    code = code.replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
             
-            // Define Lua keywords for highlighting
-            const redkeywords = [
-                "and", "break", "do", "else", "elseif", 
-                "end", "for", "function", "if", "self",
-                "in", "local", "not", "or", "continue",
-                "repeat", "return", "then", "until", "while"
-            ];
+        // Define Lua keywords for highlighting
+        const redkeywords = [
+            "and", "break", "do", "else", "elseif", 
+            "end", "for", "function", "if", "self",
+            "in", "local", "not", "or", "continue",
+            "repeat", "return", "then", "until", "while"
+        ];
 
-            // Define keywords that should be orange
-            const orangeKeywords = [
-                "true", "false", "nil"
-            ];
+        // Define keywords that should be orange
+        const orangeKeywords = [
+            "true", "false", "nil"
+        ];
 
 // Basic functions (core Lua functions)
 const Functions = [
@@ -984,7 +1074,7 @@ for (const keyword of dotdebug) {
                 return placeholder;
             });
 
-            for (const keyword of Librariess) {
+            for (const keyword of Libraries) {
                 const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
                 processedCode = processedCode.replace(regex, function(match) {
                     const placeholder = `###BFUNCTION${parts.length}###`;
