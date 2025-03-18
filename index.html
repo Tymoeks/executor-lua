@@ -414,6 +414,11 @@
         .math-type { color: var(--dotf); }
         .string-type { color: var(--dotf); }
         .table-type { color: var(--dotf); }
+        
+        .code-editor:not(:focus):not(:hover)::before,
+        .code-editor:not(:focus):not(:hover)::after {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
