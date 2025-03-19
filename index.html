@@ -412,9 +412,9 @@
         .wartość-type   { color: var(--keyword-orange); }
         .funkcja-type   { color: var(--bfunction); }
         .biblioteka-type    { color: var(--library); }
-        .math-type       { color: var(--dotf); }
-        .string-type     { color: var(--dotf); }
-        .table-type      { color: var(--dotf); }
+        .matematyka-type       { color: var(--dotf); }
+        .ciąg-type     { color: var(--dotf); }
+        .tablica-type      { color: var(--dotf); }
         .io-type         { color: var(--dotf); }        /* New: IO library functions */
         .os-type         { color: var(--dotf); }        /* New: OS library functions */
         .package-type    { color: var(--dotf); }        /* New: Package library functions */
@@ -521,24 +521,24 @@ print(math.random(1, 5))</textarea>
         // Define autocomplete suggestions
         const autocompleteItems = [
             // Lua keywords
-            { text: "and", type: "wyrażenie" },
-            { text: "break", type: "wyrażenie" },
-            { text: "do", type: "wyrażenie" },
-            { text: "else", type: "wyrażenie" },
-            { text: "elseif", type: "wyrażenie" },
-            { text: "end", type: "wyrażenie" },
-            { text: "for", type: "wyrażenie" },
             { text: "function", type: "wyrażenie" },
             { text: "if", type: "wyrażenie" },
-            { text: "in", type: "wyrażenie" },
-            { text: "local", type: "wyrażenie" },
-            { text: "not", type: "wyrażenie" },
-            { text: "or", type: "wyrażenie" },
-            { text: "repeat", type: "wyrażenie" },
-            { text: "return", type: "wyrażenie" },
             { text: "then", type: "wyrażenie" },
-            { text: "until", type: "wyrażenie" },
+            { text: "end", type: "wyrażenie" },
+            { text: "return", type: "wyrażenie" },
+            { text: "local", type: "wyrażenie" },
+            { text: "for", type: "wyrażenie" },
             { text: "while", type: "wyrażenie" },
+            { text: "repeat", type: "wyrażenie" },
+            { text: "until", type: "wyrażenie" },
+            { text: "else", type: "wyrażenie" },
+            { text: "elseif", type: "wyrażenie" },
+            { text: "do", type: "wyrażenie" },
+            { text: "and", type: "wyrażenie" },
+            { text: "or", type: "wyrażenie" },
+            { text: "not", type: "wyrażenie" },
+            { text: "in", type: "wyrażenie" },
+            { text: "break", type: "wyrażenie" },
             { text: "goto", type: "wyrażenie" },
 
             // Values
@@ -580,118 +580,119 @@ print(math.random(1, 5))</textarea>
             { text: "debug", type: "biblioteka" },
 
             // Math functions
-            { text: "math.abs", type: "math" },
-            { text: "math.acos", type: "math" },
-            { text: "math.asin", type: "math" },
-            { text: "math.atan", type: "math" },
-            { text: "math.atan2", type: "math" },
-            { text: "math.ceil", type: "math" },
-            { text: "math.cos", type: "math" },
-            { text: "math.cosh", type: "math" },
-            { text: "math.deg", type: "math" },
-            { text: "math.exp", type: "math" },
-            { text: "math.floor", type: "math" },
-            { text: "math.fmod", type: "math" },
-            { text: "math.huge", type: "math" },
-            { text: "math.ldexp", type: "math" },
-            { text: "math.log", type: "math" },
-            { text: "math.log10", type: "math" },
-            { text: "math.max", type: "math" },
-            { text: "math.min", type: "math" },
-            { text: "math.modf", type: "math" },
-            { text: "math.pi", type: "math" },
-            { text: "math.rad", type: "math" },
-            { text: "math.random", type: "math" },
-            { text: "math.randomseed", type: "math" },
-            { text: "math.sin", type: "math" },
-            { text: "math.sinh", type: "math" },
-            { text: "math.sqrt", type: "math" },
-            { text: "math.tan", type: "math" },
-            { text: "math.tanh", type: "math" },
-            { text: "math.pow", type: "math" },
+            { text: "math.random", type: "matematyka" },
+            { text: "math.floor", type: "matematyka" },
+            { text: "math.ceil", type: "matematyka" },
+            { text: "math.abs", type: "matematyka" },
+            { text: "math.max", type: "matematyka" },
+            { text: "math.min", type: "matematyka" },
+            { text: "math.sqrt", type: "matematyka" },
+            { text: "math.pi", type: "matematyka" },
+            { text: "math.sin", type: "matematyka" },
+            { text: "math.cos", type: "matematyka" },
+            { text: "math.tan", type: "matematyka" },
+            { text: "math.rad", type: "matematyka" },
+            { text: "math.deg", type: "matematyka" },
+            { text: "math.log", type: "matematyka" },
+            { text: "math.fmod", type: "matematyka" },
+            { text: "math.pow", type: "matematyka" },
+            { text: "math.modf", type: "matematyka" },
+            { text: "math.atan", type: "matematyka" },
+            { text: "math.asin", type: "matematyka" },
+            { text: "math.acos", type: "matematyka" },
+            { text: "math.exp", type: "matematyka" },
+            { text: "math.log10", type: "matematyka" },
+            { text: "math.randomseed", type: "matematyka" },
+            { text: "math.huge", type: "matematyka" },
+            { text: "math.atan2", type: "matematyka" },
+            { text: "math.sinh", type: "matematyka" },
+            { text: "math.cosh", type: "matematyka" },
+            { text: "math.tanh", type: "matematyka" },
+            { text: "math.ldexp", type: "matematyka" }
 
             // String functions
-            { text: "string.byte", type: "string" },
-            { text: "string.char", type: "string" },
-            { text: "string.dump", type: "string" },
-            { text: "string.find", type: "string" },
-            { text: "string.format", type: "string" },
-            { text: "string.gmatch", type: "string" },
-            { text: "string.gsub", type: "string" },
-            { text: "string.len", type: "string" },
-            { text: "string.lower", type: "string" },
-            { text: "string.match", type: "string" },
-            { text: "string.rep", type: "string" },
-            { text: "string.reverse", type: "string" },
-            { text: "string.sub", type: "string" },
-            { text: "string.upper", type: "string" },
-
+            { text: "string.len", type: "ciąg" },
+            { text: "string.sub", type: "ciąg" },
+            { text: "string.find", type: "ciąg" },
+            { text: "string.match", type: "ciąg" },
+            { text: "string.gsub", type: "ciąg" },
+            { text: "string.lower", type: "ciąg" },
+            { text: "string.upper", type: "ciąg" },
+            { text: "string.format", type: "ciąg" },
+            { text: "string.byte", type: "ciąg" },
+            { text: "string.char", type: "ciąg" },
+            { text: "string.rep", type: "ciąg" },
+            { text: "string.reverse", type: "ciąg" },
+            { text: "string.gmatch", type: "ciąg" },
+            { text: "string.dump", type: "ciąg" },
+        
             // Table functions
-            { text: "table.concat", type: "table" },
-            { text: "table.insert", type: "table" },
-            { text: "table.remove", type: "table" },
-            { text: "table.sort", type: "table" },
-            { text: "table.unpack", type: "table" },
-            { text: "table.getn", type: "table" },
-            { text: "table.move", type: "table" },
-            { text: "table.foreach", type: "table" },
-            { text: "table.foreachi", type: "table" },
+            { text: "table.insert", type: "tablica" },
+            { text: "table.remove", type: "tablica" },
+            { text: "table.concat", type: "tablica" },
+            { text: "table.sort", type: "tablica" },
+            { text: "table.unpack", type: "tablica" },
+            { text: "table.move", type: "tablica" }
 
-            // IO functions
-            { text: "io.close", type: "io" },
-            { text: "io.flush", type: "io" },
-            { text: "io.input", type: "io" },
-            { text: "io.lines", type: "io" },
+            // Posortowane według częstotliwości użycia:
             { text: "io.open", type: "io" },
+            { text: "io.read", type: "io" },
+            { text: "io.write", type: "io" },
+            { text: "io.lines", type: "io" },
+            { text: "io.close", type: "io" },
+            { text: "io.input", type: "io" },
             { text: "io.output", type: "io" },
             { text: "io.popen", type: "io" },
-            { text: "io.read", type: "io" },
+            { text: "io.flush", type: "io" },
             { text: "io.tmpfile", type: "io" },
-            { text: "io.type", type: "io" },
-            { text: "io.write", type: "io" },
+            { text: "io.type", type: "io" }
 
-            // OS functions
-            { text: "os.clock", type: "os" },
+
+            // Posortowane według częstotliwości użycia:
+            { text: "os.time", type: "os" },
             { text: "os.date", type: "os" },
-            { text: "os.difftime", type: "os" },
+            { text: "os.clock", type: "os" },
             { text: "os.execute", type: "os" },
-            { text: "os.exit", type: "os" },
             { text: "os.getenv", type: "os" },
             { text: "os.remove", type: "os" },
             { text: "os.rename", type: "os" },
-            { text: "os.setlocale", type: "os" },
-            { text: "os.time", type: "os" },
+            { text: "os.exit", type: "os" },
+            { text: "os.difftime", type: "os" },
+            { text: "os.setlocale", type: "os" }
 
-            // Package functions
-            { text: "package.loadlib", type: "package" },
-            { text: "package.searchpath", type: "package" },
-            { text: "package.preload", type: "package" },
-            { text: "package.loaded", type: "package" },
-            { text: "package.config", type: "package" },
+
+            // Posortowane według częstotliwości użycia:
+            { text: "package.require", type: "package" },
             { text: "package.path", type: "package" },
             { text: "package.cpath", type: "package" },
-            { text: "package.require", type: "package" },
-            { text: "package.module", type: "package" },
+            { text: "package.config", type: "package" },
+            { text: "package.searchpath", type: "package" },
+            { text: "package.loadlib", type: "package" },
+            { text: "package.preload", type: "package" },
+            { text: "package.loaded", type: "package" },
+            { text: "package.module", type: "package" }
 
-            // Coroutine functions
+
+            // Posortowane według częstotliwości użycia:
             { text: "coroutine.create", type: "coroutine" },
             { text: "coroutine.resume", type: "coroutine" },
-            { text: "coroutine.running", type: "coroutine" },
-            { text: "coroutine.status", type: "coroutine" },
-            { text: "coroutine.wrap", type: "coroutine" },
             { text: "coroutine.yield", type: "coroutine" },
+            { text: "coroutine.wrap", type: "coroutine" },
+            { text: "coroutine.status", type: "coroutine" },
+            { text: "coroutine.running", type: "coroutine" }
 
-            // Debug functions
+
+            // Posortowane według częstotliwości użycia:
+            { text: "debug.getinfo", type: "debug" },
             { text: "debug.debug", type: "debug" },
+            { text: "debug.getupvalue", type: "debug" },
+            { text: "debug.setupvalue", type: "debug" },
             { text: "debug.gethook", type: "debug" },
             { text: "debug.sethook", type: "debug" },
-            { text: "debug.getinfo", type: "debug" },
             { text: "debug.getlocal", type: "debug" },
             { text: "debug.setlocal", type: "debug" },
             { text: "debug.getmetatable", type: "debug" },
-            { text: "debug.getregistry", type: "debug" },
-            { text: "debug.getupvalue", type: "debug" },
-            { text: "debug.setupvalue", type: "debug" }
+            { text: "debug.getregistry", type: "debug" }
         ];
         
         // Line numbers functionality
@@ -874,8 +875,8 @@ function highlightSyntax() {
         const redkeywords = [
             "and", "break", "do", "else", "elseif", 
             "end", "for", "function", "if", "self",
-            "in", "local", "not", "or", "continue",
-            "repeat", "return", "then", "until", "while"
+            "in", "local", "not", "or", "repeat", 
+            "return", "then", "until", "while"
         ];
 
         // Define keywords that should be orange
@@ -906,7 +907,7 @@ const dotmath = [
 
 // Functions from the table library
 const dottable = [
-    "insert", "remove", "sort", "concat", "move", "getn", "foreach", "foreachi"
+    "insert", "remove", "sort", "concat", "move", "unpack"
 ];
 
 // Functions from the string library
