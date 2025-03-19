@@ -539,7 +539,6 @@ print(math.random(1, 5))</textarea>
             { text: "then", type: "wyrażenie" },
             { text: "until", type: "wyrażenie" },
             { text: "while", type: "wyrażenie" },
-            { text: "continue", type: "wyrażenie" },
             { text: "goto", type: "wyrażenie" },
 
             // Values
@@ -731,7 +730,7 @@ function showAutocomplete() {
         }
 
         const fullWord = bestMatch.text.toLowerCase();
-        const minLength = Math.ceil(fullWord.length * 0.25); // 25% pełnego słowa
+        const minLength = Math.ceil(fullWord.length * 0.2); // 25% pełnego słowa
 
         // Pokaż sugestie tylko, jeśli wpisano przynajmniej 25% długości słowa
         if (partialWord.length < minLength) {
@@ -840,12 +839,20 @@ function showAutocomplete() {
                 // Scroll if needed
                 items[selectedAutocompleteIndex].scrollIntoView({ block: 'nearest' });
             } 
-            else if (e.key === 'Enter' || e.key === 'Tab') {
+            else if (e.key === 'Tab') {
                 e.preventDefault();
                 if (selectedAutocompleteIndex >= 0) {
                     insertSuggestion(currentSuggestions[selectedAutocompleteIndex].text);
                 } else if (items.length > 0) {
                     insertSuggestion(currentSuggestions[0].text);
+                }
+            } 
+            else if (e.key === 'Enter') {
+                if (selectedAutocompleteIndex >= 0) {
+                    e.preventDefault();
+                    insertSuggestion(currentSuggestions[selectedAutocompleteIndex].text);
+                } else {
+                    hideAutocomplete();
                 }
             } 
             else if (e.key === 'Escape') {
