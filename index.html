@@ -1073,7 +1073,8 @@ for (const keyword of dotdebug) {
 
             // Built-in functions with dot (only if preceded by a dot)
             for (const keyword of Functions) {
-                const regex = new RegExp(`\\b(${keyword})\\b(?=\\()`, 'g');  // Match the keyword followed by '('
+                // const regex = new RegExp(`\\b(${keyword})\\b(?=\\()`, 'g');  // Match the keyword followed by '('
+                const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
                 processedCode = processedCode.replace(regex, function(match) {
                     const placeholder = `###BFUNCTION${parts.length}###`;
                     parts.push('<span class="bfunction" style="color: var(--bfunction); font-weight: plain;">' + match + '</span>');
